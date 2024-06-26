@@ -879,11 +879,11 @@ const neptuneRing = new _three.Mesh(neptuneRingGeometry, neptuneRingMaterial);
 neptuneRing.rotation.x = Math.PI / 2;
 neptune.mesh.add(neptuneRing);
 //ambient light
-//const ambientLight = new THREE.AmbientLight(0x333333,5);
+const ambientLight = new _three.AmbientLight(0x333333, 5);
 scene.add(ambientLight);
 //sun light
 const sunLight = new _three.PointLight(0xFFFFFF, 25, 300);
-sunLight.position.set(0, 0, 0);
+sunLight.position.set(sun.mesh.position.x, sun.mesh.position.y, sun.mesh.position.z);
 scene.add(sunLight);
 // post-processing bloom effect
 const composer = new (0, _effectComposerJs.EffectComposer)(renderer);
