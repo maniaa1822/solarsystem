@@ -710,6 +710,12 @@ class Planet {
             material.emissive = new _three.Color(0xffff00);
             material.emissiveIntensity = 10;
         }
+        // Add a light source if the planet is the sun
+        if (this.name.toLowerCase() === "sun") {
+            const sunLight = new _three.PointLight(0xffffff, 10, 0); // Adjust color, intensity, and distance as needed
+            sunLight.position.set(position.x, position.y, position.z);
+            scene.add(sunLight);
+        }
         this.mesh = new _three.Mesh(geometry, material);
         this.mesh.position.set(position.x, position.y, position.z);
         scene.add(this.mesh);
@@ -881,10 +887,6 @@ neptune.mesh.add(neptuneRing);
 //ambient light
 const ambientLight = new _three.AmbientLight(0x333333, 5);
 scene.add(ambientLight);
-//sun light
-const sunLight = new _three.PointLight(0xFFFFFF, 25, 300);
-sunLight.position.set(sun.mesh.position.x, sun.mesh.position.y, sun.mesh.position.z);
-scene.add(sunLight);
 // post-processing bloom effect
 const composer = new (0, _effectComposerJs.EffectComposer)(renderer);
 const renderPass = new (0, _renderPassJs.RenderPass)(scene, camera);
