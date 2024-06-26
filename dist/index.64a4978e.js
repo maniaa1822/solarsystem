@@ -840,17 +840,17 @@ function spawnObject(event) {
     console.log("New planet created:", object);
 }
 // Sun and planets
-const sun = new Planet("Sun", 20, (0, _sunJpgDefault.default), new _three.Vector3(0, 0, 0), new _three.Vector3(0, 5, 0), 1.989e30, true, 0, 1.2);
-const mercury = new Planet("Mercury", 3.8, (0, _mercuryJpgDefault.default), new _three.Vector3(39, 0, 0), new _three.Vector3(0, 5, 47.87), 3.285e23, false, 0, 1.0);
-const venus = new Planet("Venus", 5.8, (0, _venusJpgDefault.default), new _three.Vector3(72, 0, 0), new _three.Vector3(0, 5, 35.02), 4.867e24, false, 1.5, 1.1);
-const earth = new Planet("Earth", 6, (0, _earthJpgDefault.default), new _three.Vector3(100, 0, 0), new _three.Vector3(0, 5, 29.78), 5.972e24, false, 1.0, 1.1);
-const mars = new Planet("Mars", 4, (0, _marsJpgDefault.default), new _three.Vector3(152, 0, 0), new _three.Vector3(0, 5, 24.07), 6.39e23, false, 0.3, 1.05);
-const jupiter = new Planet("Jupiter", 12, (0, _jupiterJpgDefault.default), new _three.Vector3(249, 0, 0), new _three.Vector3(0, 5, 20.07), 1.898e27, false, 0.8, 1.15);
-const saturn = new Planet("Saturn", 10, (0, _saturnJpgDefault.default), new _three.Vector3(333, 0, 0), new _three.Vector3(0, 5, 18.69), 5.683e26, false, 0.5, 1.1);
-const uranus = new Planet("Uranus", 8, (0, _uranusJpgDefault.default), new _three.Vector3(375, 0, 0), new _three.Vector3(0, 5, 17.81), 8.681e25, false, 0.4, 1.07);
-const neptune = new Planet("Neptune", 7.8, (0, _neptuneJpgDefault.default), new _three.Vector3(500, 0, 0), new _three.Vector3(0, 5, 16.43), 1.024e26, false, 0.4, 1.07);
+const sun = new Planet("Sun", 20, (0, _sunJpgDefault.default), new _three.Vector3(0, 0, 0), new _three.Vector3(0, 0, 0), 1.989e30, true, 0, 1.2);
+const mercury = new Planet("Mercury", 3.8, (0, _mercuryJpgDefault.default), new _three.Vector3(39, 0, 0), new _three.Vector3(0, 0, 47.87), 3.285e23, false, 0, 1.0);
+const venus = new Planet("Venus", 5.8, (0, _venusJpgDefault.default), new _three.Vector3(72, 0, 0), new _three.Vector3(0, 0, 35.02), 4.867e24, false, 1.5, 1.1);
+const earth = new Planet("Earth", 6, (0, _earthJpgDefault.default), new _three.Vector3(100, 0, 0), new _three.Vector3(0, 0, 29.78), 5.972e24, false, 1.0, 1.1);
+const mars = new Planet("Mars", 4, (0, _marsJpgDefault.default), new _three.Vector3(152, 0, 0), new _three.Vector3(0, 0, 24.07), 6.39e23, false, 0.3, 1.05);
+const jupiter = new Planet("Jupiter", 12, (0, _jupiterJpgDefault.default), new _three.Vector3(249, 0, 0), new _three.Vector3(0, 0, 20.07), 1.898e27, false, 0.8, 1.15);
+const saturn = new Planet("Saturn", 10, (0, _saturnJpgDefault.default), new _three.Vector3(333, 0, 0), new _three.Vector3(0, 0, 18.69), 5.683e26, false, 0.5, 1.1);
+const uranus = new Planet("Uranus", 8, (0, _uranusJpgDefault.default), new _three.Vector3(375, 0, 0), new _three.Vector3(0, 0, 17.81), 8.681e25, false, 0.4, 1.07);
+const neptune = new Planet("Neptune", 7.8, (0, _neptuneJpgDefault.default), new _three.Vector3(500, 0, 0), new _three.Vector3(0, 0, 16.43), 1.024e26, false, 0.4, 1.07);
 // Pluto (dwarf planet)
-const pluto = new Planet("Pluto", 2, (0, _plutoJpgDefault.default), new _three.Vector3(600, 0, 0), new _three.Vector3(0, 5, 14.67), 1.309e22, false, 0, 1.0);
+const pluto = new Planet("Pluto", 2, (0, _plutoJpgDefault.default), new _three.Vector3(600, 0, 0), new _three.Vector3(0, 0, 14.67), 1.309e22, false, 0, 1.0);
 // Add Saturn's rings
 const saturnRingGeometry = new _three.RingGeometry(15, 20, 64);
 const saturnRingMaterial = new _three.MeshBasicMaterial({
