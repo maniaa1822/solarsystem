@@ -758,7 +758,11 @@ function spawnObject(event) {
     // Multiply the velocity by the speed
     const obj_velocity = obj_velocity_dir.multiplyScalar(planetVelocity);
     // Create a new planet
-    const object = new Planet("new planet", planetSize, textureLoader.load((0, _sunJpgDefault.default)), obj_position, obj_velocity, planetMass);
+    const greyMaterial = new _three.MeshPhongMaterial({
+        color: 0x888888,
+        emissive: 0x444444
+    });
+    const object = new Planet("new planet", planetSize, greyMaterial, obj_position, obj_velocity, planetMass);
     // Add the new planet to the planets array
     planets.push(object);
     console.log("New planet created:", object);
@@ -802,9 +806,9 @@ function animate() {
     sun.mesh.rotateY(0.04);
     mercury.mesh.rotateY(0.04);
     saturn.mesh.rotateY(0.038);
-    uranus.mesh.rotateY(0.03);
-    neptune.mesh.rotateY(0.032);
-    pluto.mesh.rotateY(0.008);
+    //uranus.mesh.rotateY(0.03);
+    //neptune.mesh.rotateY(0.032);
+    //pluto.mesh.rotateY(0.008);
     mars.mesh.rotateY(0.04);
     //Around-sun-rotation
     //mercury.obj.rotateY(0.004);

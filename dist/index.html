@@ -1,1 +1,54 @@
-<!DOCTYPE html><html lang="en"><head><script type="module" src="/index.runtime.661f175e.js"></script><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Solar System</title><style>body{margin:0;overflow:hidden}#planetInfo{color:#fff;background-color:#000000b3;border-radius:10px;max-width:250px;padding:15px;font-family:Arial,sans-serif;position:fixed;top:10px;right:10px}#planetInfo h2{margin-top:0;margin-bottom:10px}#planetInfo p{margin:5px 0}</style></head><body> <div id="planetInfo"> <h2>Planet Information</h2> <div id="planetDetails"></div> </div> <div id="spawnControls" style="color:#fff;background-color:#000000b3;border-radius:10px;max-width:250px;padding:15px;font-family:Arial,sans-serif;position:fixed;bottom:10px;right:10px"> <h3 style="margin-top:0;margin-bottom:10px">Spawn New Planet</h3> <input type="number" id="planetMass" placeholder="Mass (kg)" value="1e12" style="margin:5px 0"><br> <input type="number" id="planetSize" placeholder="Size" value="5" style="margin:5px 0"><br> <input type="number" id="planetVelocity" placeholder="Velocity (m/s)" value="10" style="margin:5px 0"><br> <button id="spawnButton" style="margin:5px 0">Spawn Planet</button> </div> <div id="speedControls" style="color:#fff;background-color:#000000b3;border-radius:10px;max-width:250px;padding:15px;font-family:Arial,sans-serif;position:fixed;bottom:10px;left:10px"> <h3 style="margin-top:0;margin-bottom:10px">Simulation Speed</h3> <input type="range" id="speedFactor" name="speedFactor" min="0.0" max="10" step="0.1" value="0" style="margin:5px 0"> </div> <script src="/index.50d36f75.js" type="module"></script> </body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System</title>
+    <style>body {
+  margin: 0;
+  overflow: hidden;
+}
+
+#planetInfo {
+  color: #fff;
+  background-color: #000000b3;
+  border-radius: 10px;
+  max-width: 250px;
+  padding: 15px;
+  font-family: Arial, sans-serif;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+}
+
+#planetInfo h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+#planetInfo p {
+  margin: 5px 0;
+}
+</style>
+</head>
+<body>
+    <div id="planetInfo">
+        <h2>Planet Information</h2>
+        <div id="planetDetails"></div>
+    </div>
+    <div id="spawnControls" style="color: #fff; background-color: #000000b3; border-radius: 10px; max-width: 250px; padding: 15px; font-family: Arial, sans-serif; position: fixed; bottom: 10px; right: 10px">
+        <h3 style="margin-top: 0; margin-bottom: 10px">Spawn New Planet</h3>
+        <input type="number" id="planetMass" placeholder="Mass (kg)" value="1e12" style="margin: 5px 0"><br>
+        <input type="number" id="planetSize" placeholder="Size" value="5" style="margin: 5px 0"><br>
+        <input type="number" id="planetVelocity" placeholder="Velocity (m/s)" value="10" style="margin: 5px 0"><br>
+        <button id="spawnButton" style="margin: 5px 0">Spawn Planet</button>
+    </div>
+    <div id="speedControls" style="color: #fff; background-color: #000000b3; border-radius: 10px; max-width: 250px; padding: 15px; font-family: Arial, sans-serif; position: fixed; bottom: 10px; left: 10px">
+        <h3 style="margin-top: 0; margin-bottom: 10px">Simulation Speed</h3>
+        <input type="range" id="speedFactor" name="speedFactor" min="0.0" max="10" step="0.1" value="0" style="margin: 5px 0">
+    </div>
+    <script src="/index.64a4978e.js" defer=""></script>
+</body>
+
+</html>

@@ -207,10 +207,11 @@ function spawnObject(event) {
     const obj_velocity = obj_velocity_dir.multiplyScalar(planetVelocity);
     
     // Create a new planet
+    const greyMaterial = new THREE.MeshPhongMaterial({ color: 0x888888, emissive: 0x444444 });
     const object = new Planet(
         'new planet',
         planetSize,
-        textureLoader.load(sunTexture), // Use textureLoader to load the texture
+        greyMaterial, // Use textureLoader to load the texture
         obj_position,
         obj_velocity,
         planetMass
@@ -268,9 +269,9 @@ function animate() {
     sun.mesh.rotateY(0.04);
     mercury.mesh.rotateY(0.04);
     saturn.mesh.rotateY(0.038);
-    uranus.mesh.rotateY(0.03);
-    neptune.mesh.rotateY(0.032);
-    pluto.mesh.rotateY(0.008);
+    //uranus.mesh.rotateY(0.03);
+    //neptune.mesh.rotateY(0.032);
+    //pluto.mesh.rotateY(0.008);
     mars.mesh.rotateY(0.04);
 
     //Around-sun-rotation
