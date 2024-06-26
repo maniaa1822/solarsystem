@@ -191,7 +191,7 @@ class Planet {
         this.mesh.position.addScaledVector(this.velocity, dt);
         // Update trace
         this.tracePoints.push(this.mesh.position.clone());
-        if (this.tracePoints.length > 5000) { // Limit the number of points to prevent performance issues
+        if (this.tracePoints.length > 2500) { // Limit the number of points to prevent performance issues
             this.tracePoints.shift();
         }
         this.trace.geometry.setFromPoints(this.tracePoints);
