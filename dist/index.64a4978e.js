@@ -625,14 +625,11 @@ renderer.toneMapping = _three.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.5;
 document.body.appendChild(renderer.domElement);
 const scene = new _three.Scene();
-// Step 1: Create an AxesHelper instance
-// The parameter 100 defines the size of the axes (adjust this value based on your needs)
 const axesHelper = new _three.AxesHelper(100);
-// Step 2: Add the AxesHelper to your scene
 scene.add(axesHelper);
-const camera = new _three.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new _three.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
 const orbit = new (0, _orbitControlsJs.OrbitControls)(camera, renderer.domElement);
-camera.position.set(-90, 140, 140);
+camera.position.set(-90, 750, 750);
 orbit.update();
 const clock = new _three.Clock();
 const cubeTextureLoader = new _three.CubeTextureLoader();
@@ -644,7 +641,6 @@ scene.background = cubeTextureLoader.load([
     (0, _starsJpgDefault.default),
     (0, _starsJpgDefault.default)
 ]);
-const textureLoader = new _three.TextureLoader();
 //UI
 const planetInfoDiv = document.getElementById("planetDetails");
 // Create a raycaster
@@ -690,15 +686,19 @@ function updatePlanetInfo() {
     } else // If nothing is intersected, clear the info
     planetInfoDiv.innerHTML = "<p>Hover over a planet to see its information.</p>";
 }
+// Planets array
 const planets = [];
 class Planet {
-    constructor(name, size, texturePath, position, velocity, mass, emissive = false){
-        const velocityscale = 4e7;
+    constructor(name, size, texturePath, position, velocity, mass, emissive = false, atmosphericDensity = 0){
         this.name = name;
         this.size = size;
         this.position = position;
-        this.velocity = velocity.multiplyScalar(velocityscale);
+        this.velocity = velocity.multiplyScalar(4e7);
         this.mass = mass;
+        this.atmosphericDensity = atmosphericDensity;
+        this.forceArrows = new _three.Group();
+        scene.add(this.forceArrows);
+        this.forces = {};
         const geometry = new _three.SphereGeometry(size, 64, 64);
         const texture = new _three.TextureLoader().load(texturePath);
         texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -713,6 +713,7 @@ class Planet {
         this.mesh = new _three.Mesh(geometry, material);
         this.mesh.position.set(position.x, position.y, position.z);
         scene.add(this.mesh);
+        if (atmosphericDensity > 0) this.addAtmosphere(size * 1.05, new _three.Color(0x93cfef));
         // Trace setup
         this.tracePoints = [];
         const traceMaterial = new _three.LineBasicMaterial({
@@ -722,7 +723,28 @@ class Planet {
         });
         this.trace = new _three.Line(new _three.BufferGeometry(), traceMaterial);
         scene.add(this.trace);
+        // Add the planet to the planets array
         planets.push(this);
+    }
+    addAtmosphere(size, color) {
+        const atmosphereGeometry = new _three.SphereGeometry(size * 1.2, 64, 64);
+        const atmosphereMaterial = new _three.ShaderMaterial({
+            uniforms: {
+                glowColor: {
+                    value: color
+                },
+                atmosphericDensity: {
+                    value: this.atmosphericDensity
+                }
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            side: _three.BackSide,
+            blending: _three.AdditiveBlending,
+            transparent: true
+        });
+        const atmosphere = new _three.Mesh(atmosphereGeometry, atmosphereMaterial);
+        this.mesh.add(atmosphere);
     }
     attract(planet, dt) {
         const G = 6.67e-11;
@@ -732,15 +754,59 @@ class Planet {
         const force = dir.multiplyScalar(forceMagnitude);
         const acceleration = force.multiplyScalar(1 / this.mass);
         this.velocity.addScaledVector(acceleration, dt);
+        // Store the force for visualization
+        this.forces[planet.name] = force;
     }
     update(dt) {
+        // Update position
         this.mesh.position.addScaledVector(this.velocity, dt);
         // Update trace
         this.tracePoints.push(this.mesh.position.clone());
-        if (this.tracePoints.length > 1000) this.tracePoints.shift();
+        if (this.tracePoints.length > 5000) this.tracePoints.shift();
         this.trace.geometry.setFromPoints(this.tracePoints);
+        this.updateForceVisualization();
+    }
+    updateForceVisualization() {
+        // Remove all previous force arrows
+        while(this.forceArrows.children.length > 0)this.forceArrows.remove(this.forceArrows.children[0]);
+        // Create new force arrows
+        for (let [planetName, force] of Object.entries(this.forces)){
+            const arrowHelper = this.createForceArrow(force, planetName);
+            this.forceArrows.add(arrowHelper);
+        }
+        // Update the position of the force arrows group
+        this.forceArrows.position.copy(this.mesh.position);
+    }
+    createForceArrow(force) {
+        const origin = new _three.Vector3(0, 0, 0);
+        const forceMagnitude = force.length();
+        const forceDir = force.normalize();
+        // Scale the arrow length
+        const arrowLength = forceMagnitude * 1e-15;
+        // Create a white color for the arrow
+        const color = new _three.Color(0xffffff);
+        const arrowHelper = new _three.ArrowHelper(forceDir, origin, arrowLength, color);
+        return arrowHelper;
     }
 }
+// Atmosphere shader
+const vertexShader = `
+varying vec3 vNormal;
+void main() {
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+const fragmentShader = `
+uniform vec3 glowColor;
+uniform float atmosphericDensity;
+varying vec3 vNormal;
+void main() {
+    float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
+    intensity *= atmosphericDensity;
+    gl_FragColor = vec4(glowColor, 1.0) * intensity;
+}
+`;
 function spawnObject(event) {
     // Get the form inputs
     const massInput = document.getElementById("planetMass");
@@ -762,70 +828,88 @@ function spawnObject(event) {
         color: 0x888888,
         emissive: 0x444444
     });
-    const object = new Planet("new planet", planetSize, greyMaterial, obj_position, obj_velocity, planetMass);
+    const object = new Planet("new planet", planetSize, greyMaterial, obj_position, obj_velocity, planetMass, true);
     // Add the new planet to the planets array
     planets.push(object);
     console.log("New planet created:", object);
 }
-// Create planets with enhanced textures
-const sun = new Planet("Sun", 20, (0, _sunJpgDefault.default), new _three.Vector3(0, 0, 0), new _three.Vector3(0, 0, 0), 1.989e30, true);
-const mercury = new Planet("Mercury", 3.8, (0, _mercuryJpgDefault.default), new _three.Vector3(39, 0, 0), new _three.Vector3(0, 0, 47.87), 3.285e23);
-const venus = new Planet("Venus", 5.8, (0, _venusJpgDefault.default), new _three.Vector3(72, 0, 0), new _three.Vector3(0, 0, 35.02), 4.867e24);
-const earth = new Planet("Earth", 6, (0, _earthJpgDefault.default), new _three.Vector3(100, 0, 0), new _three.Vector3(0, 0, 29.78), 5.972e24);
-const mars = new Planet("Mars", 4, (0, _marsJpgDefault.default), new _three.Vector3(152, 0, 0), new _three.Vector3(0, 0, 24.07), 6.39e23);
-const jupiter = new Planet("Jupiter", 12, (0, _jupiterJpgDefault.default), new _three.Vector3(249, 0, 0), new _three.Vector3(0, 0, 13.07), 1.898e27);
-const saturn = new Planet("Saturn", 10, (0, _saturnJpgDefault.default), new _three.Vector3(302, 0, 0), new _three.Vector3(0, 0, 9.69), 5.683e26);
+// Sun and planets
+const sun = new Planet("Sun", 20, (0, _sunJpgDefault.default), new _three.Vector3(0, 0, 0), new _three.Vector3(0, 5, 0), 1.989e30, true, 0, 1.2);
+const mercury = new Planet("Mercury", 3.8, (0, _mercuryJpgDefault.default), new _three.Vector3(39, 0, 0), new _three.Vector3(0, 5, 47.87), 3.285e23, false, 0, 1.0);
+const venus = new Planet("Venus", 5.8, (0, _venusJpgDefault.default), new _three.Vector3(72, 0, 0), new _three.Vector3(0, 5, 35.02), 4.867e24, false, 1.5, 1.1);
+const earth = new Planet("Earth", 6, (0, _earthJpgDefault.default), new _three.Vector3(100, 0, 0), new _three.Vector3(0, 5, 29.78), 5.972e24, false, 1.0, 1.1);
+const mars = new Planet("Mars", 4, (0, _marsJpgDefault.default), new _three.Vector3(152, 0, 0), new _three.Vector3(0, 5, 24.07), 6.39e23, false, 0.3, 1.05);
+const jupiter = new Planet("Jupiter", 12, (0, _jupiterJpgDefault.default), new _three.Vector3(249, 0, 0), new _three.Vector3(0, 5, 20.07), 1.898e27, false, 0.8, 1.15);
+const saturn = new Planet("Saturn", 10, (0, _saturnJpgDefault.default), new _three.Vector3(333, 0, 0), new _three.Vector3(0, 5, 18.69), 5.683e26, false, 0.5, 1.1);
+const uranus = new Planet("Uranus", 8, (0, _uranusJpgDefault.default), new _three.Vector3(375, 0, 0), new _three.Vector3(0, 5, 17.81), 8.681e25, false, 0.4, 1.07);
+const neptune = new Planet("Neptune", 7.8, (0, _neptuneJpgDefault.default), new _three.Vector3(500, 0, 0), new _three.Vector3(0, 5, 16.43), 1.024e26, false, 0.4, 1.07);
+// Pluto (dwarf planet)
+const pluto = new Planet("Pluto", 2, (0, _plutoJpgDefault.default), new _three.Vector3(600, 0, 0), new _three.Vector3(0, 5, 14.67), 1.309e22, false, 0, 1.0);
 // Add Saturn's rings
-const ringGeometry = new _three.RingGeometry(15, 20, 64);
-const ringMaterial = new _three.MeshBasicMaterial({
+const saturnRingGeometry = new _three.RingGeometry(15, 20, 64);
+const saturnRingMaterial = new _three.MeshBasicMaterial({
     map: new _three.TextureLoader().load((0, _saturnRingPngDefault.default)),
     side: _three.DoubleSide,
     transparent: true,
     opacity: 0.8
 });
-const ring = new _three.Mesh(ringGeometry, ringMaterial);
-ring.rotation.x = Math.PI / 2;
-saturn.mesh.add(ring);
-// Improve lighting
+const saturnRing = new _three.Mesh(saturnRingGeometry, saturnRingMaterial);
+saturnRing.rotation.x = Math.PI / 2;
+saturn.mesh.add(saturnRing);
+// Add Uranus' rings
+const uranusRingGeometry = new _three.RingGeometry(12, 14, 64);
+const uranusRingMaterial = new _three.MeshBasicMaterial({
+    map: new _three.TextureLoader().load((0, _uranusRingPngDefault.default)),
+    side: _three.DoubleSide,
+    transparent: true,
+    opacity: 0.6
+});
+const uranusRing = new _three.Mesh(uranusRingGeometry, uranusRingMaterial);
+uranusRing.rotation.x = Math.PI / 2;
+uranus.mesh.add(uranusRing);
+// Add Neptune's rings (faint and narrow)
+const neptuneRingGeometry = new _three.RingGeometry(11.5, 12, 64);
+const neptuneRingMaterial = new _three.MeshBasicMaterial({
+    color: 0x4ca6ff,
+    side: _three.DoubleSide,
+    transparent: true,
+    opacity: 0.3
+});
+const neptuneRing = new _three.Mesh(neptuneRingGeometry, neptuneRingMaterial);
+neptuneRing.rotation.x = Math.PI / 2;
+neptune.mesh.add(neptuneRing);
+//ambient light
 const ambientLight = new _three.AmbientLight(0x333333, 5);
 scene.add(ambientLight);
+//sun light
 const sunLight = new _three.PointLight(0xFFFFFF, 25, 300);
 sunLight.position.set(0, 0, 0);
 scene.add(sunLight);
-// Set up post-processing for bloom effect
+// post-processing bloom effect
 const composer = new (0, _effectComposerJs.EffectComposer)(renderer);
 const renderPass = new (0, _renderPassJs.RenderPass)(scene, camera);
 composer.addPass(renderPass);
-const bloomPass = new (0, _unrealBloomPassJs.UnrealBloomPass)(new _three.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+const bloomPass = new (0, _unrealBloomPassJs.UnrealBloomPass)(new _three.Vector2(window.innerWidth, window.innerHeight));
 bloomPass.threshold = 0;
-bloomPass.strength = 0.6;
-bloomPass.radius = 0;
+bloomPass.strength = 0.4;
+bloomPass.radius = 0.1;
 composer.addPass(bloomPass);
 function animate() {
     //Self-rotation
     sun.mesh.rotateY(0.04);
     mercury.mesh.rotateY(0.04);
     saturn.mesh.rotateY(0.038);
-    //uranus.mesh.rotateY(0.03);
-    //neptune.mesh.rotateY(0.032);
-    //pluto.mesh.rotateY(0.008);
+    uranus.mesh.rotateY(0.03);
+    neptune.mesh.rotateY(0.032);
+    pluto.mesh.rotateY(0.008);
     mars.mesh.rotateY(0.04);
-    //Around-sun-rotation
-    //mercury.obj.rotateY(0.004);
-    //venus.obj.rotateY(0.015);
-    //earth.obj.rotateY(0.01);
-    //mars.obj.rotateY(0.008);
-    //jupiter.obj.rotateY(0.002);
-    //saturn.obj.rotateY(0.0009);
-    //uranus.obj.rotateY(0.0004);
-    //neptune.obj.rotateY(0.0001);
-    //pluto.obj.rotateY(0.00007);
+    venus.mesh.rotateY(0.04);
+    earth.mesh.rotateY(0.04);
+    jupiter.mesh.rotateY(0.039);
     // Update the planets' positions
     const speedFactorInput = document.getElementById("speedFactor");
     const globalFactor = 0.000000001;
     const dt = clock.getDelta() * speedFactorInput.value * globalFactor;
-    // Update the planets' positions
-    // New loop to handle attraction and update
     planets.forEach((body)=>{
         planets.forEach((otherBody)=>{
             if (body !== otherBody) body.attract(otherBody, dt);
@@ -834,6 +918,7 @@ function animate() {
     });
     updatePlanetInfo();
     renderer.render(scene, camera);
+    composer.render();
 }
 renderer.setAnimationLoop(animate);
 window.addEventListener("resize", function() {
