@@ -343,7 +343,7 @@ neptuneRing.rotation.x = Math.PI / 2;
 neptune.mesh.add(neptuneRing);
 
 //ambient light
-const ambientLight = new THREE.AmbientLight(0x333333,5);
+//const ambientLight = new THREE.AmbientLight(0x333333,5);
 scene.add(ambientLight);
 //sun light
 const sunLight = new THREE.PointLight(0xFFFFFF, 25, 300);
