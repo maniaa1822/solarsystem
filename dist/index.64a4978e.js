@@ -584,12 +584,14 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"goJYj":[function(require,module,exports) {
+// Import Three.js and required modules
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _three = require("three");
 var _orbitControlsJs = require("three/examples/jsm/controls/OrbitControls.js");
 var _effectComposerJs = require("three/examples/jsm/postprocessing/EffectComposer.js");
 var _renderPassJs = require("three/examples/jsm/postprocessing/RenderPass.js");
 var _unrealBloomPassJs = require("three/examples/jsm/postprocessing/UnrealBloomPass.js");
+// Import texture images for celestial bodies and background
 var _starsJpg = require("../img/stars.jpg");
 var _starsJpgDefault = parcelHelpers.interopDefault(_starsJpg);
 var _sunJpg = require("../img/sun.jpg");
@@ -616,22 +618,33 @@ var _neptuneJpg = require("../img/neptune.jpg");
 var _neptuneJpgDefault = parcelHelpers.interopDefault(_neptuneJpg);
 var _plutoJpg = require("../img/pluto.jpg");
 var _plutoJpgDefault = parcelHelpers.interopDefault(_plutoJpg);
+// Create a WebGL renderer with antialiasing
 const renderer = new _three.WebGLRenderer({
     antialias: true
 });
+// Set the pixel ratio to match the device's display
 renderer.setPixelRatio(window.devicePixelRatio);
+// Set the renderer size to match the window size
 renderer.setSize(window.innerWidth, window.innerHeight);
+// Set up tone mapping for better color representation
 renderer.toneMapping = _three.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.5;
+// Add the renderer's canvas to the document body
 document.body.appendChild(renderer.domElement);
+// Create a new Three.js scene
 const scene = new _three.Scene();
+// Add an axes helper to the scene for debugging
 const axesHelper = new _three.AxesHelper(100);
 scene.add(axesHelper);
+// Create a perspective camera
 const camera = new _three.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
+// Set up orbit controls for user interaction
 const orbit = new (0, _orbitControlsJs.OrbitControls)(camera, renderer.domElement);
 camera.position.set(-90, 750, 750);
 orbit.update();
+// Create a clock for tracking time in animations
 const clock = new _three.Clock();
+// Load a cube texture for the background (starry sky)
 const cubeTextureLoader = new _three.CubeTextureLoader();
 scene.background = cubeTextureLoader.load([
     (0, _starsJpgDefault.default),
@@ -641,9 +654,9 @@ scene.background = cubeTextureLoader.load([
     (0, _starsJpgDefault.default),
     (0, _starsJpgDefault.default)
 ]);
-//UI
+// Get reference to the planet info display element
 const planetInfoDiv = document.getElementById("planetDetails");
-// Create a raycaster
+// Create a raycaster for mouse picking
 const raycaster = new _three.Raycaster();
 const mouse = new _three.Vector2();
 // Function to update mouse position
@@ -653,10 +666,11 @@ function onMouseMove(event) {
 }
 // Add mouse move event listener
 window.addEventListener("mousemove", onMouseMove, false);
-// Get the button element
+// Get reference to the spawn button
 const spawnButton = document.getElementById("spawnButton");
-// Attach the event listener
+// Attach click event listener to spawn button
 spawnButton.addEventListener("click", spawnObject);
+// Function to update planet information display
 function updatePlanetInfo() {
     // Update the picking ray with the camera and mouse position
     raycaster.setFromCamera(mouse, camera);
@@ -686,8 +700,9 @@ function updatePlanetInfo() {
     } else // If nothing is intersected, clear the info
     planetInfoDiv.innerHTML = "<p>Hover over a planet to see its information.</p>";
 }
-// Planets array
+// Array to store all planet objects
 const planets = [];
+// Planet class definition
 class Planet {
     constructor(name, size, texturePath, position, velocity, mass, emissive = false, atmosphericDensity = 0){
         this.name = name;
@@ -699,28 +714,33 @@ class Planet {
         this.forceArrows = new _three.Group();
         scene.add(this.forceArrows);
         this.forces = {};
+        // Create sphere geometry for the planet
         const geometry = new _three.SphereGeometry(size, 64, 64);
         const texture = new _three.TextureLoader().load(texturePath);
         texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        // Create material for the planet
         const material = new _three.MeshPhongMaterial({
             map: texture,
             shininess: 5
         });
+        // Add emissive properties if specified (for sun-like objects)
         if (emissive) {
             material.emissive = new _three.Color(0xffff00);
-            material.emissiveIntensity = 10;
+            material.emissiveIntensity = 5;
         }
         // Add a light source if the planet is the sun
         if (this.name.toLowerCase() === "sun") {
-            const sunLight = new _three.PointLight(0xffffff, 10, 0); // Adjust color, intensity, and distance as needed
+            const sunLight = new _three.PointLight(0xffffff, 7.5, 0);
             sunLight.position.set(position.x, position.y, position.z);
             scene.add(sunLight);
         }
+        // Create mesh and add to scene
         this.mesh = new _three.Mesh(geometry, material);
         this.mesh.position.set(position.x, position.y, position.z);
         scene.add(this.mesh);
+        // Add atmosphere if specified
         if (atmosphericDensity > 0) this.addAtmosphere(size * 1.05, new _three.Color(0x93cfef));
-        // Trace setup
+        // Set up trace for planet's orbit
         this.tracePoints = [];
         const traceMaterial = new _three.LineBasicMaterial({
             color: 0xffffff,
@@ -732,6 +752,7 @@ class Planet {
         // Add the planet to the planets array
         planets.push(this);
     }
+    // Method to add atmosphere to the planet
     addAtmosphere(size, color) {
         const atmosphereGeometry = new _three.SphereGeometry(size * 1.2, 64, 64);
         const atmosphereMaterial = new _three.ShaderMaterial({
@@ -752,6 +773,7 @@ class Planet {
         const atmosphere = new _three.Mesh(atmosphereGeometry, atmosphereMaterial);
         this.mesh.add(atmosphere);
     }
+    // Method to calculate gravitational attraction between planets
     attract(planet, dt) {
         const G = 6.67e-11;
         const distance = Math.max(this.mesh.position.distanceTo(planet.mesh.position), 1);
@@ -763,6 +785,7 @@ class Planet {
         // Store the force for visualization
         this.forces[planet.name] = force;
     }
+    // Method to update planet's position and trace
     update(dt) {
         // Update position
         this.mesh.position.addScaledVector(this.velocity, dt);
@@ -772,6 +795,7 @@ class Planet {
         this.trace.geometry.setFromPoints(this.tracePoints);
         this.updateForceVisualization();
     }
+    // Method to update force visualization
     updateForceVisualization() {
         // Remove all previous force arrows
         while(this.forceArrows.children.length > 0)this.forceArrows.remove(this.forceArrows.children[0]);
@@ -783,6 +807,7 @@ class Planet {
         // Update the position of the force arrows group
         this.forceArrows.position.copy(this.mesh.position);
     }
+    // Method to create a force arrow
     createForceArrow(force) {
         const origin = new _three.Vector3(0, 0, 0);
         const forceMagnitude = force.length();
@@ -795,24 +820,45 @@ class Planet {
         return arrowHelper;
     }
 }
-// Atmosphere shader
+/// Vertex Shader
 const vertexShader = `
+// The varying keyword is used to pass data from the vertex shader to the fragment shader
 varying vec3 vNormal;
+
 void main() {
+    // Normalize the normal vector and transform it from model space to view space
+    // The normalMatrix is the upper-left 3x3 of modelViewMatrix, used for normal transformation
     vNormal = normalize(normalMatrix * normal);
+
+    // Transform the vertex position from model space to clip space
+    // This is the standard vertex transformation in OpenGL
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
+// Fragment Shader
 const fragmentShader = `
+// Uniform variables are set from the JavaScript code and are constant for all fragments
 uniform vec3 glowColor;
 uniform float atmosphericDensity;
+
+// This receives the interpolated normal vector from the vertex shader
 varying vec3 vNormal;
+
 void main() {
-    float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
+    // Calculate the intensity of the glow effect
+    // This creates a rim lighting effect by taking the dot product of the view vector (0,0,1) and the normal
+    // The result is inverted (0.4 - ...) so that the edge of the sphere glows more than the center
+    float intensity = pow(0.4 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
+
+    // Modify the intensity based on the atmospheric density
     intensity *= atmosphericDensity;
-    gl_FragColor = vec4(glowColor, 1.0) * intensity;
+
+    // Set the final color
+    // The alpha channel is set to 0.5, but the intensity controls the overall visibility
+    gl_FragColor = vec4(glowColor, 0.5) * intensity;
 }
 `;
+// Function to spawn a new object based on user input
 function spawnObject(event) {
     // Get the form inputs
     const massInput = document.getElementById("planetMass");
@@ -839,7 +885,7 @@ function spawnObject(event) {
     planets.push(object);
     console.log("New planet created:", object);
 }
-// Sun and planets
+// Create sun and planets
 const sun = new Planet("Sun", 20, (0, _sunJpgDefault.default), new _three.Vector3(0, 0, 0), new _three.Vector3(0, 0, 0), 1.989e30, true, 0, 1.2);
 const mercury = new Planet("Mercury", 3.8, (0, _mercuryJpgDefault.default), new _three.Vector3(39, 0, 0), new _three.Vector3(0, 0, 47.87), 3.285e23, false, 0, 1.0);
 const venus = new Planet("Venus", 5.8, (0, _venusJpgDefault.default), new _three.Vector3(72, 0, 0), new _three.Vector3(0, 0, 35.02), 4.867e24, false, 1.5, 1.1);
@@ -847,9 +893,9 @@ const earth = new Planet("Earth", 6, (0, _earthJpgDefault.default), new _three.V
 const mars = new Planet("Mars", 4, (0, _marsJpgDefault.default), new _three.Vector3(152, 0, 0), new _three.Vector3(0, 0, 24.07), 6.39e23, false, 0.3, 1.05);
 const jupiter = new Planet("Jupiter", 12, (0, _jupiterJpgDefault.default), new _three.Vector3(249, 0, 0), new _three.Vector3(0, 0, 20.07), 1.898e27, false, 0.8, 1.15);
 const saturn = new Planet("Saturn", 10, (0, _saturnJpgDefault.default), new _three.Vector3(333, 0, 0), new _three.Vector3(0, 0, 18.69), 5.683e26, false, 0.5, 1.1);
+// ... (continued from previous artifact)
 const uranus = new Planet("Uranus", 8, (0, _uranusJpgDefault.default), new _three.Vector3(375, 0, 0), new _three.Vector3(0, 0, 17.81), 8.681e25, false, 0.4, 1.07);
 const neptune = new Planet("Neptune", 7.8, (0, _neptuneJpgDefault.default), new _three.Vector3(500, 0, 0), new _three.Vector3(0, 0, 16.43), 1.024e26, false, 0.4, 1.07);
-// Pluto (dwarf planet)
 const pluto = new Planet("Pluto", 2, (0, _plutoJpgDefault.default), new _three.Vector3(600, 0, 0), new _three.Vector3(0, 0, 14.67), 1.309e22, false, 0, 1.0);
 // Add Saturn's rings
 const saturnRingGeometry = new _three.RingGeometry(15, 20, 64);
@@ -884,20 +930,22 @@ const neptuneRingMaterial = new _three.MeshBasicMaterial({
 const neptuneRing = new _three.Mesh(neptuneRingGeometry, neptuneRingMaterial);
 neptuneRing.rotation.x = Math.PI / 2;
 neptune.mesh.add(neptuneRing);
-//ambient light
+// Add ambient light to the scene
 const ambientLight = new _three.AmbientLight(0x333333, 5);
 scene.add(ambientLight);
-// post-processing bloom effect
+// Set up post-processing effects
 const composer = new (0, _effectComposerJs.EffectComposer)(renderer);
 const renderPass = new (0, _renderPassJs.RenderPass)(scene, camera);
 composer.addPass(renderPass);
+// Add bloom effect
 const bloomPass = new (0, _unrealBloomPassJs.UnrealBloomPass)(new _three.Vector2(window.innerWidth, window.innerHeight));
 bloomPass.threshold = 0;
 bloomPass.strength = 0.4;
 bloomPass.radius = 0.1;
 composer.addPass(bloomPass);
+// Main animation loop
 function animate() {
-    //Self-rotation
+    // Self-rotation of planets
     sun.mesh.rotateY(0.04);
     mercury.mesh.rotateY(0.04);
     saturn.mesh.rotateY(0.038);
@@ -912,17 +960,22 @@ function animate() {
     const speedFactorInput = document.getElementById("speedFactor");
     const globalFactor = 0.000000001;
     const dt = clock.getDelta() * speedFactorInput.value * globalFactor;
+    // Calculate gravitational interactions and update positions
     planets.forEach((body)=>{
         planets.forEach((otherBody)=>{
             if (body !== otherBody) body.attract(otherBody, dt);
         });
         body.update(dt);
     });
+    // Update planet information display
     updatePlanetInfo();
+    // Render the scene
     renderer.render(scene, camera);
     composer.render();
 }
+// Start the animation loop
 renderer.setAnimationLoop(animate);
+// Handle window resizing
 window.addEventListener("resize", function() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
